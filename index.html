@@ -3,12 +3,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Maple Banquet</title>
-
+  <title>Komal Caterers</title>
   <style>
     body {
       font-family: Arial, Helvetica, sans-serif;
-      background: linear-gradient(135deg, #3b8fc7, #f5f3f3);
+      background: linear-gradient(135deg, #e3f2fd, #fff);
       margin: 0;
       padding: 0;
       display: flex;
@@ -19,48 +18,40 @@
     }
 
     .title {
-      font-size: 30px;
-      font-weight: 600;
+      font-size: 42px;
+      font-weight: 700;
+      color: #d32f2f;
       text-align: center;
-      margin-top: 40px;
-      border-radius: 15px;
-      padding: 12px 18px;
-      color: #fff;
-      background: linear-gradient(90deg, #4285F4, #34A853, #FBBC05, #EA4335);
-      animation: colorShift 4s infinite alternate;
-      background-size: 200% 200%;
-    }
-
-    @keyframes colorShift {
-      0% { background-position: 0% 50%; }
-      100% { background-position: 100% 50%; }
+      margin-top: 30px;
+      margin-bottom: 10px;
+      background: linear-gradient(135deg, #e3f2fd, #fff);
     }
 
     .subtitle {
       font-size: 18px;
-      color: #303030;
-      margin-top: 15px;
-      margin-left: 20px;
+      text-align: center;
+      color: #333;
+      margin-bottom: 30px;
     }
 
     .review-box {
       width: 80%;
       max-width: 700px;
-      background: #ffffff;
-      border-radius: 20px;
-      padding: 22px;
+      background: #f7f7f7;
+      border-radius: 30px;
+      padding: 24px;
       font-size: 17px;
       color: #333;
       line-height: 1.6;
       box-shadow: 0 8px 20px rgba(0,0,0,0.1);
       text-align: left;
       position: relative;
-      margin-top: 15px;
+      transition: 0.4s ease;
     }
 
     .copy-btn {
       position: absolute;
-      bottom: -18px;
+      bottom: -16px;
       left: 30px;
       background: #1976d2;
       color: white;
@@ -73,7 +64,7 @@
     }
 
     .copy-btn:hover {
-      background: #0b4ea8;
+      background: #0d47a1;
     }
 
     .google-btn {
@@ -86,7 +77,12 @@
       padding: 12px 18px;
       background: linear-gradient(90deg, #4285F4, #34A853, #FBBC05, #EA4335);
       background-size: 300% 300%;
-     
+      animation: colorShift 6s infinite alternate;
+    }
+
+    @keyframes colorShift {
+      0% { background-position: 0% 50%; }
+      100% { background-position: 100% 50%; }
     }
 
     .star-section {
@@ -96,184 +92,107 @@
     }
 
     .stars {
-      font-size: 24px;
-      margin: 5px 0;
+      font-size: 22px;
       letter-spacing: 3px;
     }
 
     .thanks {
-      margin-top: 30px;
+      margin-top: 40px;
       font-size: 22px;
       font-family: 'Brush Script MT', cursive;
-      color: #512a2a;
+      color: #111;
       text-align: center;
     }
 
     .policy {
       font-size: 12px;
-      color: #555;
+      color: #777;
       text-align: center;
-      margin-top: 15px;
-      padding: 0 15px;
+      margin-top: 20px;
       line-height: 1.4;
     }
   </style>
 </head>
-
 <body>
-  <div class="title">MAPLE banquet</div>
+  <div class="title">Komal Caterers</div>
+  <div class="subtitle">To give review copy the text</div>
 
-  <div class="subtitle">To give review, copy the text below 👇</div>
-
-  <div class="review-box">
-    <p id="reviewText"></p>
+  <div class="review-box" id="reviewBox">
+    <p id="reviewText">Loading review...</p>
     <button class="copy-btn" id="copyBtn">Copy Text</button>
   </div>
 
-  <a href="https://search.google.com/local/writereview?placeid=ChIJjRMtTvtZ7TkRonCm0RudOas" target="_blank" rel="noopener" class="google-btn">
-     Write Google Review 
-  </a>
+  <a href="https://search.google.com/local/writereview?placeid=ChIJjRMtTvtZ7TkRonCm0RudOas" target="_blank" rel="noopener" class="google-btn">Google Reviews</a>
 
   <div class="star-section">
-    <small>only give</small>
     <div class="stars">⭐⭐⭐⭐⭐</div>
-    <small>May your day not be good but great!</small>
   </div>
 
   <div class="thanks">Thanks for supporting us!</div>
 
   <div class="policy">
-    <p>All Reviews are voluntary and for feedback purpose only.</p> <p> By using this page, you agree that reviews reflects personal experience only.</p>
+    <p>All reviews are voluntary and for feedback purposes only.</p>
+    <p>By using this page, you agree that reviews reflect personal experience only.</p>
+  </div>
 
- 
+  <script type="module">
+    // Import Supabase client
+    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-  <script>
-    const reviews = [
+    const SUPABASE_URL = 'https://cwbvxvsutndgzryktgds.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN3YnZ4dnN1dG5kZ3pyeWt0Z2RzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI0NDgwOTMsImV4cCI6MjA3ODAyNDA5M30.6NSOKaG09SyWnT1JS0Zl1627fx7bFWnCsXQGS19XijE';
 
-  "My jigri dost ki wedding thi, aur DJ/sound system ne mazaak aagaya! Itna dhamakedaar music tha ki sab pagal ho gaye the dance floor pe. Thanks Maple Banquet for giving us the best party!",
-  "Bas ek word: F.A.N.T.A.S.T.I.C.! My dearest friend's wedding looked so grand because of the amazing lighting and video screens. Maple Banquet rocks the modern wedding vibe!",
-  "My Niece's Fairy Tale Wedding! As the Mausi, I was thrilled with how elegant and affordable the entire event was. The coordination between the staff was brilliant, and the entire setup looked grand. It was a beautiful celebration, thanks to the management.",
-  "Superb value for the price! Delicious catering and a well-organized team. Our family is delighted with our choice. Book early, they are popular!",
-  "Wonderful atmosphere and highly cooperative staff. The service was excellent. My only minor suggestion for the management is to better manage the exit flow of vehicles after the event concludes.",
-  "Humara pura parivar khush tha! Bache dessert counter se bahar hi nahi nikal rahe the. Staff ka nature itna humble tha. 10/10 for hospitality!",
-  "The catering at Maple Banquet is easily the best in Patna! The superb taste and freshness of the food were praised by every guest. A varied menu and brilliant live counters.",
-  "A True Value-for-Money Gem! My Chachi was worried about the high costs, but Maple Banquet delivered a luxury experience at a very reasonable price. Their food is simply the best—not too spicy, perfect for everyone. Great service and great savings!",
-  "Best Management for My Nephew’s Big Day! I've attended many weddings, but the team at Maple Banquet impressed me the most. They were incredibly proactive, ensuring all elders were comfortable. The entire function was well-structured and the food was fresh and flavourful. Highly professional!",
-  "The wedding went flawlessly because of the attentive staff. We were very satisfied. Moving forward, I think the quality of the complimentary rooms provided could be a bit better maintained.",
-  "Five stars for pure flavor! Humne socha tha aam shaadi ka khaana hoga, but Maple ne game change kar diya. Har cheez mein richness thi. Flawless event tha. Jo bhi host kare, unka budget waste nahi gaya!",
-  "Superb value for the price! Delicious catering and a well-organized team. Our family is delighted with our choice. Book early, they are popular!",
-  "Maple Banquet is a gem. The staff is cooperative, the hall is clean, and the food is a treat.",
-  "Best wedding dinner experience ever! Maple Banquet ka staff bahut prompt tha. Har table pe proper attention thi. Khana garam, dil khush! What else do you need?",
-  "The in-house decoration at Maple is absolutely breathtaking. They use premium decor elements that look high-end. Elegant floral work and beautiful theme execution. Zero stress on external decorators!",
-  "Superb value for the price! Delicious catering and a well-organized team. Our family is delighted with our choice. Book early, they are popular!",
-  "For our Sangeet, the Maple team executed a complex intelligent lighting design. It created a magical ambiance. The music volume was perfect—not too loud, just right. Kudos to the lighting experts!",
-  "Bhai ki shaadi thi, par dil khush kar diya Maple ne! Sach bataun, Patna mein itni awesome management aur delicious food kahin nahin dekha. Khana itna fresh tha ki lag hi nahi raha tha ki banquet ka hai. Excellent experience!",
-  "The only minor point is that the parking area signage could be clearer, especially at night. Overall, my sisters wedding at Maple Banquet was excellent and stress-free! The food and service were top-notch.",
-  "The wedding of my close relative was beautifully executed! The management is very efficient. For a grand event, the video screen size in the hall could potentially be larger for better viewing from the back",
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  "Our Dream Wedding on a Budget! Choosing Maple Banquet for our wedding was the easiest and best decision. The entire team respected our budget without compromising on quality. The food was spectacular, and the event flow was so smooth. As the bride/groom, I felt completely stress-free. A huge thanks for the memorable day!",
-  "Finally, a Patna banquet that delivers! Suna tha bahut, par experience karke maza aa gaya. Management ki mehnat saaf dikhti hai. Excellent food management and coordination.",
-  "The bridal room was well-appointed and comfortable—a lifesaver for the bride! The entire facility has a great vibe and is kept in excellent condition. Highly recommended facilities.",
-  "Best wedding food I've had in years! Attended a wedding here last week. Seriously, the food was the highlight—super tasty, well-presented, and so much variety. The event seemed extremely organized, which is rare for a big Indian wedding! Top marks for taste and tidiness.",
-  "Our family is delighted with our choice. The ambiance was lovely and the sound system was crystal clear. The only minor point is that the AC temperature control felt a little inconsistent during the peak hours of the evening.",
-  "I was jealous in a good way! My friend's wedding was a dream thanks to the magnificent decor and killer music system. Seriously, Maple Banquet knows how to throw a killer party!",
-  "Heartfelt Thanks for a Smooth Ceremony! I helped with the Tika/Tilak ceremony here. Everything was set up so efficiently. The staffs politeness and the amazing spread of tasty snacks and dinner made it a huge success. Highly recommended for pre-wedding functions too!",
-  "Flawless Execution & Superb Taste! We hosted our daughters wedding here and couldn't be happier. The taste and variety of food were outstanding—our guests are still talking about the paneer! Management handled every tiny detail perfectly. Truly a top-class venue in Patna.",
-  "A highly recommended venue for weddings! The lighting and music vibe were fantastic. The only small improvement Id suggest is to increase the speed of service at the live counters during the rush hour.",
-  "Excellent professional service and amazing food! Maple Banquet truly delivers. To make it absolutely perfect, perhaps the hall entrance setup could be slightly more grand to create a stronger first impression.",
-  "My Niece's Fairy Tale Wedding! As the Mausi (maternal aunt), I was thrilled with how elegant and affordable the entire event was. The coordination between the staff was brilliant, and the entire setup looked grand. It was a beautiful celebration, thanks to the management.",
-  "Superb value for the price! Delicious catering and a well-organized team. Our family is delighted with our choice. Book early, they are popular!",
-  "Unbeatable Location with amazing service. They delivered everything promised, and the wedding food was exceptional. Don't hesitate to book!",
-  "The lighting setup at Maple Banquet is truly cinematic! It transformed the hall completely. The sound system was crystal clear, making the Sangeet night a huge success. Excellent acoustics and professional tech team!",
-  "The team at Maple Banquet is incredibly proactive and professional. They ensured seamless execution of the entire wedding, handling last-minute changes with a smile. Best managed event!",
-  "Our Dream Wedding, Made Perfect at Maple Banquet! Choosing Maple Banquet for our wedding was the best decision we made! What stood out the most was how they managed everything flawlessly within our budget, proving that a beautiful wedding doesn't have to break the bank. Every single dish was incredibly delicious and well-loved by our guests.",
-  "Yaar, meri Bestie ki Shaadi ka kya Vibe banaya tha Maple ne! DJ lights, bass aur decoration—sab kuch epic tha. I wish main bhi yahin shaadi karoon! Goosebumps aa gaye party mein!",
-  "The food is a must-try! We got so many compliments on the catering for our engagement ceremony held at Maple Banquet. The taste, the quality, and the budget compatibility are unmatched. Thank you for the wonderful memories!",
-  "Maple Banquet is a great venue with unbeatable value. We loved the delicious catering and the professional management. The only tiny suggestion is that the parking area signage could be clearer, especially at night.",
-  "Best Decision! Stress-free booking and flawless wedding execution. The hall looks beautiful, and the food is great. Highly recommended venue",
-  
-  "Ek dum dil se bol raha hoon – zabardast! Shandaar khana, sasta deal (jaisa hosts ne bataya), aur parivar jaisa mahaul. Maple Banquet, you made the wedding so much fun!",
-  "Unbeatable Location with amazing service. They delivered everything promised, and the wedding food was exceptional. Don't hesitate to book!",
-  "Best Management for My Nephew’s Big Day! I've attended many weddings, but the team at Maple Banquet impressed me the most. They were incredibly proactive, ensuring all elders were comfortable. The entire function was well-structured and the food was fresh and flavourful. Highly professional!",
-  "Our family event was a huge success here! Everything was well-managed and the staff was cooperative. If I had one wish, it would be for a little more variety in the dessert section of the buffet menu.",
-  "Flawless Execution & Superb Taste! We hosted our daughter’s wedding here and couldn't be happier. The taste and variety of food were outstanding—our guests are still talking about the paneer! Management handled every tiny detail perfectly. Truly a top-class venue in Patna.",
-  "Best wedding food in Patna, hands down! We were very happy with the budget and quality. The seating arrangement on the main stage side could be made more spacious to allow for better photography angles.",
-  "My dearest friend's wedding looked so grand because of the amazing lighting and video screens. Maple Banquet rocks the modern wedding vibe!",
-  "A True Value-for-Money Gem! My Chachi (aunt) was worried about the high costs, but Maple Banquet delivered a luxury experience at a very reasonable price. Their food is simply the best—not too spicy, perfect for everyone. Great service and great savings!",
-  "DJ aur sound ki vibe toh next level thi! Mera dost aur uska parivar poori raat nache! No sound distortion, powerful bass, aur dynamic lighting ne party ko energetic bana diya. Best technical management!",
-  "My Niece's Fairy Tale Wedding! As the Mausi (maternal aunt), I was thrilled with how elegant and affordable the entire event was. The coordination between the staff was brilliant, and the entire setup looked grand. It was a beautiful celebration, thanks to the management.",
-  "We loved the elegance of Maple Banquet! The staff made us feel very comfortable. My only feedback is that the variety of welcome drinks offered could be expanded beyond the basic options.",
-  "Best wedding dinner experience ever! Maple Banquet ka staff bahut prompt tha. Har table pe proper attention thi. Khana garam, dil khush! What else do you need?",
-  "The food is a must-try! We got so many compliments on the catering for our engagement ceremony held at Maple Banquet. The taste, the quality, and the budget compatibility are unmatched. Thank you for the wonderful memories!",
-  "Stress-Free Celebration for My Sister! I was in charge of planning my sister's wedding, and the Maple Banquet team made me look good! Everything was reasonably priced, the banquet looked beautiful, and the staff was always smiling and ready to help. Highly recommend for a relaxed family event.",
-  "The team at Maple Banquet is incredibly proactive and professional. They ensured seamless execution of the entire wedding, handling last-minute changes with a smile. Best managed event!",
-  "We hosted a corporate event here, and the setup was highly professional and efficient. They are the best for corporate events in Patna, not just weddings. Great AV equipment too!",
-  "A venue with integrity! I was happy to see how efficiently the wedding of my friend was handled. The hosts were very satisfied with the budget and management. This place definitely prioritizes the customer's needs and delivers on its promises.",
-  "Overall, my sister’s wedding at Maple Banquet was excellent and stress-free! The food and service were top-notch. However, I feel the standard floral decor could be slightly more contemporary to match the hall's modern interior.",
-  "Truly mouth-watering food! The Non-Veg selection, in particular, was exceptional. It added a layer of richness to my cousin's big day. Highly recommended caterer!",
-  "Best Management for My Nephew’s Big Day! I've attended many weddings, but the team at Maple Banquet impressed me the most. They were incredibly proactive, ensuring all elders were comfortable. The entire function was well-structured and the food was fresh and flavourful. Highly professional",
+    const reviewText = document.getElementById('reviewText');
+    const copyBtn = document.getElementById('copyBtn');
 
-  "Bestie's wedding was the ultimate success! The vibrant lighting and loud sound created a festive mood instantly. Poore shaher mein aisi party nahin dekhi. Highly emotional and fun event!",
-  "The ambience of Maple Banquet is simply stunning. The elegant decor and good lighting created the perfect backdrop for our wedding photos. A truly beautiful venue in the heart of Patna.",
-  "Best Decision! Stress-free booking and flawless wedding execution. The hall looks beautiful, and the food is great. Highly recommended venue!",
-  "The wedding of my close relative was beautifully executed! The management is very efficient. For a grand event, the video screen size in the hall could potentially be larger for better viewing from the back.",
-  "I was jealous in a good way! My friend's wedding was a dream thanks to the magnificent decor and killer music system. Seriously, Maple Banquet knows how to throw a killer party!",
-  "Everything ran like clockwork during our engagement party. The well-trained staff and their efficient service made the evening highly enjoyable for everyone. Highly reliable venue.",
-  "My brother’s wedding was elevated by the food served here. Genuinely the best banquet food I’ve ever tasted in Patna, and the pricing was surprisingly economical. A perfect blend of budget, taste, and wonderful service. A must-visit venue!",
-  "The audio-visual support was top-notch for our ceremony. The stage lighting was superb for photos, and the background music was perfectly orchestrated. A smooth technical operation.",
-  "Superb value for the price! Delicious catering and a well-organized team. Our family is delighted with our choice. Book early, they are popular!",
-  "My Niece's Fairy Tale Wedding! As the Mausi (maternal aunt), I was thrilled with how elegant and affordable the entire event was. The coordination between the staff was brilliant, and the entire setup looked grand. It was a beautiful celebration, thanks to the management.",
-  "Best Management for My Nephew’s Big Day! I've attended many weddings, but the team at Maple Banquet impressed me the most. They were incredibly proactive, ensuring all elders were comfortable. The entire function was well-structured and the food was fresh and flavourful. Highly professional!",
-  "Our family event was a huge success here! Everything was well-managed and the staff was cooperative. If I had one wish, it would be for a little more variety in the dessert section of the buffet menu.",
-  "A truly stress-free wedding! The management here is excellent. My brother and sister-in-law had zero stress because the team handled everything beautifully. Delicious food, great service, and great pricing! Simply the best!",
-  "Bhai ki shaadi thi, par dil khush kar diya Maple ne! Sach bataun, Patna mein itni awesome management aur delicious food kahin nahin dekha. Khana itna fresh tha ki lag hi nahi raha tha ki banquet ka hai. Excellent experience!",
-  "The team at Maple Banquet is incredibly proactive and professional. They ensured seamless execution of the entire wedding, handling last-minute changes with a smile. Best managed event!",
-  "A venue with integrity! I was happy to see how efficiently the wedding of my friend was handled. The hosts were very satisfied with the budget and management. This place definitely prioritizes the customer's needs and delivers on its promises.",
-  "A truly stress-free wedding! The management here is excellent. My brother and sister-in-law had zero stress because the team handled everything beautifully. Delicious food, great service, and great pricing! Simply the best!",
-  "Five stars for pure flavor! Humne socha tha aam shaadi ka khaana hoga, but Maple ne game change kar diya. Har cheez mein richness thi. Flawless event tha. Jo bhi host kare, unka budget waste nahi gaya!",
-  "Maple Banquet is a great venue with unbeatable value. We loved the delicious catering and the professional management. The only tiny suggestion is that the parking area signage could be clearer, especially at night.",
-  "My Niece's Fairy Tale Wedding! As the Mausi (maternal aunt), I was thrilled with how elegant and affordable the entire event was. The coordination between the staff was brilliant, and the entire setup looked grand. It was a beautiful celebration, thanks to the management.",
-
-
-  "Yaar, meri Bestie ki Shaadi ka kya Vibe banaya tha Maple ne! DJ lights, bass aur decoration—sab kuch epic tha. I wish main bhi yahin shaadi karoon! Goosebumps aa gaye party mein!",
-  "Wonderful atmosphere and highly cooperative staff. The service was excellent. My only minor suggestion for the management is to better manage the exit flow of vehicles after the event concludes.",
-  "A Truly Value-for-Money Gem! My Chachi (aunt) was worried about the high costs, but Maple Banquet delivered a luxury experience at a very reasonable price. Their food is simply the best—not too spicy, perfect for everyone. Great service and great savings!",
-  "The wedding of my close relative was beautifully executed! The management is very efficient. For a grand event, the video screen size in the hall could potentially be larger for better viewing from the back.",
-  "Mera dil jeet liya is banquet ne! Itna reasonable package mein itna grand setup! Yeh toh Patna ka hidden gem hai. Jiski bhi shaadi ho, yahi book karna!",
-  "Flawless Execution & Superb Taste! We hosted our daughter’s wedding here and couldn't be happier. The taste and variety of food were outstanding—our guests are still talking about the paneer! Management handled every tiny detail perfectly. Truly a top-class venue in Patna.",
-  "Our Dream Wedding on a Budget! Choosing Maple Banquet for our wedding was the easiest and best decision. The entire team respected our budget without compromising on quality. The food was spectacular, and the event flow was so smooth. As the bride/groom, I felt completely stress-free. A huge thanks for the memorable day!",
-  "The team at Maple Banquet is incredibly proactive and professional. They ensured seamless execution of the entire wedding, handling last-minute changes with a smile. Best managed event!",
-  "Bhai ki shaadi thi, par dil khush kar diya Maple ne! Sach bataun, Patna mein itni awesome management aur delicious food kahin nahin dekha. Khana itna fresh tha ki lag hi nahi raha tha ki banquet ka hai. Excellent experience!",
-  "A Truly Value-for-Money Gem! My Chachi (aunt) was worried about the high costs, but Maple Banquet delivered a luxury experience at a very reasonable price. Their food is simply the best—not too spicy, perfect for everyone. Great service and great savings!",
-  "The food is a must-try! We got so many compliments on the catering for our engagement ceremony held at Maple Banquet. The taste, the quality, and the budget compatibility are unmatched. Thank you for the wonderful memories!",
-  "Flawless Execution & Superb Taste! We hosted our daughter’s wedding here and couldn't be happier. The taste and variety of food were outstanding—our guests are still talking about the paneer! Management handled every tiny detail perfectly. Truly a top-class venue in Patna.",
-  "Best Decision! Stress-free booking and flawless wedding execution. The hall looks beautiful, and the food is great. Highly recommended venue!",
-  "The team at Maple Banquet is incredibly proactive and professional. They ensured seamless execution of the entire wedding, handling last-minute changes with a smile. Best managed event!",
-  "A venue with integrity! I was happy to see how efficiently the wedding of my friend was handled. The hosts were very satisfied with the budget and management. This place definitely prioritizes the customer's needs and delivers on its promises.",
-  "Heartfelt Thanks for a Smooth Ceremony! I helped with the Tika/Tilak ceremony here. Everything was set up so efficiently. The staff’s politeness and the amazing spread of tasty snacks and dinner made it a huge success. Highly recommended for pre-wedding functions too!",
-  "The catering at Maple Banquet is easily the best in Patna! The superb taste and freshness of the food were praised by every guest. A varied menu and brilliant live counters.",
-  "My brother’s wedding was elevated by the food served here. Genuinely the best banquet food I’ve ever tasted in Patna, and the pricing was surprisingly economical. A perfect blend of budget, taste, and wonderful service. A must-visit venue!",
-  "Our Dream Wedding on a Budget! Choosing Maple Banquet for our wedding was the easiest and best decision. The entire team respected our budget without compromising on quality. The food was spectacular, and the event flow was so smooth. As the bride/groom, I felt completely stress-free. A huge thanks for the memorable day!",
-  "Finally, a Patna banquet that delivers! Suna tha bahut, par experience karke maza aa gaya. Management ki mehnat saaf dikhti hai. Excellent food management and coordination."
-];
-
-
-    
-
-
-    const review = reviews[Math.floor(Math.random() * reviews.length)];
-    document.getElementById("reviewText").innerText = review;
-
-    document.getElementById("copyBtn").addEventListener("click", async () => {
+    async function fetchReview() {
       try {
-        await navigator.clipboard.writeText(review);
-        copyBtn.innerText = "Copied ✅";
-        setTimeout(() => copyBtn.innerText = "Copy Text", 2000);
-      } catch {
-        alert("Copy failed — copy manually");
-      }
-    });
-  </script>
+        // Step 1: Get first unused review (order by id)
+        const { data, error } = await supabase
+          .from('reviews')
+          .select('*')
+          .eq('is_used', false)
+          .order('id', { ascending: true })
+          .limit(1);
 
+        if (error) throw error;
+
+        if (!data || data.length === 0) {
+          reviewText.innerText = "No more reviews available.";
+          copyBtn.style.display = "none";
+          return;
+        }
+
+        const review = data[0];
+        reviewText.innerText = review.review_text;
+
+        // Step 2: Mark review as used
+        await supabase
+          .from('reviews')
+          .update({ is_used: true })
+          .eq('id', review.id);
+
+        // Step 3: Copy function
+        copyBtn.addEventListener("click", async function() {
+          try {
+            await navigator.clipboard.writeText(review.review_text);
+            this.innerText = "Copied ✓";
+            setTimeout(() => this.innerText = "Copy Text", 2000);
+          } catch (err) {
+            alert("Copy failed — please copy manually.");
+          }
+        });
+
+      } catch (err) {
+        console.error(err);
+        reviewText.innerText = "Error fetching review.";
+      }
+    }
+
+    fetchReview();
+  </script>
 </body>
 </html>
+
