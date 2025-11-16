@@ -138,6 +138,7 @@
   </style>
 </head>
 <body>
+
   <div class="subtitle">To give review, copy the text below 👇</div>
 
   <div class="review-box" id="reviewBox">
@@ -162,10 +163,10 @@
     <p>By using this page, you agree that reviews reflect personal experience only.</p>
   </div>
 
-  <!-- 🔥 NEW UPDATED SCRIPT (As requested) -->
+  <!-- ⭐ FULL WORKING SCRIPT BELOW ⭐ -->
   <script>
-    const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbztWAxlaMsQyhnqX8A52RmVh5upKUGfS2tMlU-6lxdIOflVYoNVW4Z9wWBPFPtU1Q0/exec
-';
+    const SHEET_API_URL =
+      'https://script.google.com/macros/s/AKfycbztWAxlaMsQyhnqX8A52RmVh5upKUGfS2tMlU-6lxdIOflVYoNVW4Z9wWBPFPtU1Q0/exec';
 
     const reviewText = document.getElementById('reviewText');
     const copyBtn = document.getElementById('copyBtn');
@@ -173,34 +174,38 @@
     async function fetchReview() {
       try {
         const response = await fetch(SHEET_API_URL + '?action=get');
-        if (!response.ok) throw new Error('Failed to fetch review');
+        if (!response.ok) throw new Error('Failed to fetch');
 
-        const textData = await response.text();
-        console.log('Raw response:', textData);
+        const raw = await response.text();
+        console.log("RAW:", raw);
 
         let data;
         try {
-          data = JSON.parse(textData);
+          data = JSON.parse(raw);
         } catch {
-          reviewText.innerText = textData.trim() || "No review text found.";
-          setupCopyButton(textData.trim());
+          reviewText.innerText = raw.trim();
+          setupCopyButton(raw.trim());
           return;
         }
 
+        /* ✅ FIXED PART BELOW */
         if (data.error) {
           reviewText.innerText = data.error;
           copyBtn.style.display = "none";
-        } else if (data.review) {
-          reviewText.innerText = data.review;
-          setupCopyButton(data.review);
-        } else {
+        }
+        else if (data.review_text) {
+          reviewText.innerText = data.review_text;
+          setupCopyButton(data.review_text);
+        }
+        else {
           reviewText.innerText = "No reviews found.";
           copyBtn.style.display = "none";
         }
+        /* ✅ FIX END */
 
       } catch (err) {
-        console.error('Error:', err);
-        reviewText.innerText = "Error fetching review. Please try again later.";
+        console.error(err);
+        reviewText.innerText = "Error fetching review.";
         copyBtn.style.display = "none";
       }
     }
@@ -213,7 +218,7 @@
         try {
           await navigator.clipboard.writeText(textToCopy);
           newBtn.innerText = "Copied ✓";
-          setTimeout(() => (newBtn.innerText = "Copy Text"), 2000);
+          setTimeout(() => newBtn.innerText = "Copy Text", 2000);
         } catch {
           const textarea = document.createElement("textarea");
           textarea.value = textToCopy;
@@ -224,7 +229,7 @@
           document.execCommand("copy");
           document.body.removeChild(textarea);
           newBtn.innerText = "Copied ✓";
-          setTimeout(() => (newBtn.innerText = "Copy Text"), 2000);
+          setTimeout(() => newBtn.innerText = "Copy Text", 2000);
         }
       });
     }
@@ -233,5 +238,4 @@
   </script>
 
 </body>
-</html>   
-
+</html>
