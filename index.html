@@ -84,6 +84,7 @@
       background-size: 500% 500%;
       animation: colorShift 2s infinite alternate;
       box-shadow: 0 3px 12px rgba(0,0,0,0.25), 0 0 8px rgba(66, 133, 244, 0.3);
+      cursor: pointer;
     }
 
     @keyframes colorShift {
@@ -138,7 +139,6 @@
   </style>
 </head>
 <body>
-
   <div class="subtitle">To give review, copy the text below 👇</div>
 
   <div class="review-box" id="reviewBox">
@@ -146,7 +146,7 @@
     <button class="copy-btn" id="copyBtn">Copy Text</button>
   </div>
 
-  <a href="https://reviewthis.biz/9493e7a0" class="google-btn">
+  <a id="googleBtn" class="google-btn">
     Google Reviews
   </a>
 
@@ -163,49 +163,51 @@
     <p>By using this page, you agree that reviews reflect personal experience only.</p>
   </div>
 
-  <!-- ⭐ FULL WORKING SCRIPT BELOW ⭐ -->
   <script>
-    const SHEET_API_URL =
-      'https://script.google.com/macros/s/AKfycbztWAxlaMsQyhnqX8A52RmVh5upKUGfS2tMlU-6lxdIOflVYoNVW4Z9wWBPFPtU1Q0/exec';
+    // ✅ Updated API URL
+    const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbztWAxlaMsQyhnqX8A52RmVh5upKUGfS2tMlU-6lxdIOflVYoNVW4Z9wWBPFPtU1Q0/exec';
 
     const reviewText = document.getElementById('reviewText');
     const copyBtn = document.getElementById('copyBtn');
+    const googleBtn = document.getElementById('googleBtn');
+
+    // ✅ State management
+    let currentReviewId = null;
+    let copyClicked = false;
 
     async function fetchReview() {
       try {
         const response = await fetch(SHEET_API_URL + '?action=get');
-        if (!response.ok) throw new Error('Failed to fetch');
+        if (!response.ok) throw new Error('Failed to fetch review');
 
-        const raw = await response.text();
-        console.log("RAW:", raw);
+        const textData = await response.text();
+        console.log('Raw response:', textData);
 
         let data;
         try {
-          data = JSON.parse(raw);
+          data = JSON.parse(textData);
         } catch {
-          reviewText.innerText = raw.trim();
-          setupCopyButton(raw.trim());
+          reviewText.innerText = textData.trim() || "No review text found.";
+          setupCopyButton(textData.trim());
           return;
         }
 
-        /* ✅ FIXED PART BELOW */
         if (data.error) {
           reviewText.innerText = data.error;
           copyBtn.style.display = "none";
-        }
-        else if (data.review_text) {
-          reviewText.innerText = data.review_text;
-          setupCopyButton(data.review_text);
-        }
-        else {
+        } else if (data.review) {
+          // ✅ Review ID save karo
+          currentReviewId = data.id;
+          reviewText.innerText = data.review;
+          setupCopyButton(data.review);
+        } else {
           reviewText.innerText = "No reviews found.";
           copyBtn.style.display = "none";
         }
-        /* ✅ FIX END */
 
       } catch (err) {
-        console.error(err);
-        reviewText.innerText = "Error fetching review.";
+        console.error('Error:', err);
+        reviewText.innerText = "Error fetching review. Please try again later.";
         copyBtn.style.display = "none";
       }
     }
@@ -218,7 +220,12 @@
         try {
           await navigator.clipboard.writeText(textToCopy);
           newBtn.innerText = "Copied ✓";
-          setTimeout(() => newBtn.innerText = "Copy Text", 2000);
+          
+          // ✅ Copy button click track karo
+          copyClicked = true;
+          console.log('✅ Copy button clicked!');
+          
+          setTimeout(() => (newBtn.innerText = "Copy Text"), 2000);
         } catch {
           const textarea = document.createElement("textarea");
           textarea.value = textToCopy;
@@ -229,13 +236,51 @@
           document.execCommand("copy");
           document.body.removeChild(textarea);
           newBtn.innerText = "Copied ✓";
-          setTimeout(() => newBtn.innerText = "Copy Text", 2000);
+          
+          // ✅ Copy button click track karo (fallback method)
+          copyClicked = true;
+          console.log('✅ Copy button clicked (fallback)!');
+          
+          setTimeout(() => (newBtn.innerText = "Copy Text"), 2000);
         }
       });
     }
 
+    // ✅ Google button click handler
+    googleBtn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      
+      console.log('Google button clicked');
+      console.log('Copy clicked:', copyClicked);
+      console.log('Review ID:', currentReviewId);
+      
+      // ✅ Agar dono conditions meet ho gayi (copy clicked + review ID exists)
+      if (copyClicked && currentReviewId) {
+        try {
+          console.log('✅ Marking review as used...');
+          
+          // Backend ko batao ki review use ho gaya
+          const response = await fetch(`${SHEET_API_URL}?action=confirmUsed&id=${currentReviewId}`);
+          const result = await response.json();
+          
+          console.log('Mark as used result:', result);
+          
+          if (result.success) {
+            console.log('✅ Review successfully marked as used!');
+          }
+        } catch (err) {
+          console.error('Error marking review as used:', err);
+        }
+      } else {
+        console.log('⚠️ Copy button not clicked yet or review ID missing');
+      }
+      
+      // Google Review page kholo
+      window.open('https://reviewthis.biz/9493e7a0', '_blank');
+    });
+
+    // Page load hone pe review fetch karo
     fetchReview();
   </script>
-
 </body>
 </html>
