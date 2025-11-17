@@ -89,9 +89,7 @@
     }
 
     .google-btn.disabled {
-      opacity: 0.5;
       cursor: not-allowed;
-      filter: grayscale(50%);
     }
 
     @keyframes colorShift {
@@ -164,12 +162,12 @@
 
     .popup-box {
       background: white;
-      border-radius: 15px;
-      padding: 30px;
-      max-width: 400px;
-      width: 90%;
+      border-radius: 12px;
+      padding: 25px 30px;
+      max-width: 350px;
+      width: 85%;
       text-align: center;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
       animation: popupSlide 0.3s ease-out;
     }
 
@@ -185,39 +183,38 @@
     }
 
     .popup-icon {
-      font-size: 50px;
-      margin-bottom: 15px;
+      font-size: 40px;
+      margin-bottom: 12px;
     }
 
     .popup-title {
-      font-size: 20px;
+      font-size: 18px;
       font-weight: 700;
       color: #333;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
     }
 
     .popup-message {
-      font-size: 15px;
-      color: #666;
-      margin-bottom: 25px;
-      line-height: 1.5;
+      font-size: 14px;
+      color: #555;
+      margin-bottom: 20px;
+      line-height: 1.4;
     }
 
     .popup-btn {
       background: #1976d2;
       color: white;
       border: none;
-      padding: 12px 30px;
-      border-radius: 8px;
+      padding: 10px 25px;
+      border-radius: 6px;
       font-weight: 600;
-      font-size: 15px;
+      font-size: 14px;
       cursor: pointer;
       transition: 0.3s;
     }
 
     .popup-btn:hover {
       background: #0d47a1;
-      transform: scale(1.05);
     }
   </style>
 </head>
@@ -249,10 +246,10 @@
   <!-- Popup Overlay -->
   <div class="popup-overlay" id="popupOverlay">
     <div class="popup-box">
-      <div class="popup-icon">⚠️</div>
-      <div class="popup-title">Copy Required!</div>
-      <div class="popup-message">Please click on "Copy Text" button first to enable Google Reviews button.</div>
-      <button class="popup-btn" id="popupCloseBtn">Okay, Got It!</button>
+      <div class="popup-icon">ℹ️</div>
+      <div class="popup-title">पहले कॉपी करें</div>
+      <div class="popup-message">कृपया पहले "Copy Text" बटन पर क्लिक करें</div>
+      <button class="popup-btn" id="popupCloseBtn">ठीक है</button>
     </div>
   </div>
 
