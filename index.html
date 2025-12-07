@@ -3,6 +3,10 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
+  
+  <!-- 🔥 Preconnect to Google Sheets API for faster loading -->
+  <link rel="preconnect" href="https://script.google.com">
+  <link rel="dns-prefetch" href="https://script.google.com">
 
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -42,7 +46,7 @@
       background: rgba(255, 255, 255, 0.75);
       border-radius: 25px;
       padding: 20px 24px 50px 24px;
-      font-size: 13px;   /* 🔥 TEXT SIZE CHANGED TO 13px */
+      font-size: 13px;
       font-family: 'Saira', Arial, Helvetica, sans-serif;
       font-weight: 800;
       color: #333;
@@ -53,7 +57,6 @@
       margin-bottom: 10px;
     }
 
-    /* 🔥 3-Line Limit System */
     .text-limit {
       display: -webkit-box;
       -webkit-line-clamp: 3;
@@ -89,6 +92,11 @@
       background: #0d47a1;
     }
 
+    .copy-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
     .google-btn {
       display: inline-block;
       margin-top: 35px;
@@ -107,6 +115,7 @@
     }
 
     .google-btn.disabled {
+      opacity: 0.6;
       cursor: not-allowed;
     }
 
@@ -160,7 +169,6 @@
       max-width: 650px;
     }
 
-    /* Popup Styles */
     .popup-overlay {
       display: none;
       position: fixed;
@@ -200,6 +208,23 @@
       font-weight: 600;
       line-height: 1.4;
     }
+
+    /* Loading spinner */
+    .spinner {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #1976d2;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      animation: spin 1s linear infinite;
+      display: inline-block;
+      vertical-align: middle;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
   </style>
 </head>
 <body>
@@ -207,9 +232,9 @@
   <div class="subtitle">To give review, copy the text below 👇</div>
 
   <div class="review-box" id="reviewBox">
-    <p id="reviewText" class="text-limit">Loading review...</p>
-    <span id="expandDots" class="expand-dots">.........</span>
-    <button class="copy-btn" id="copyBtn">Copy Text</button>
+    <p id="reviewText" class="text-limit">Loading<span class="spinner"></span></p>
+    <span id="expandDots" class="expand-dots" style="display:none;">.........</span>
+    <button class="copy-btn" id="copyBtn" disabled>Copy Text</button>
   </div>
 
   <a id="googleBtn" class="google-btn disabled">Google Reviews</a>
@@ -234,117 +259,150 @@
   </div>
 
 <script>
-
     const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbxIj_6_hzE8sR6t4dU4jy9UNogjFp8WLGTlBWT3z9jTeRIHMtYtnnPAV9W8aTzCIQSG/exec';
+    const GOOGLE_REVIEW_URL = 'https://reviewthis.biz/e5dc93e0';
 
-    const reviewText = document.getElementById('reviewText');
-    const expandDots = document.getElementById('expandDots');
-    const copyBtn = document.getElementById('copyBtn');
-    const googleBtn = document.getElementById('googleBtn');
-    const popupOverlay = document.getElementById('popupOverlay');
+    const els = {
+      reviewText: document.getElementById('reviewText'),
+      expandDots: document.getElementById('expandDots'),
+      copyBtn: document.getElementById('copyBtn'),
+      googleBtn: document.getElementById('googleBtn'),
+      popupOverlay: document.getElementById('popupOverlay')
+    };
 
-    let currentReviewId = null;
-    let copyClicked = false;
-    let reviewReserved = false;
+    let state = {
+      reviewId: null,
+      copyClicked: false,
+      reserved: false,
+      expanded: false,
+      reviewContent: ''
+    };
 
-    /* 🔥 Expand / Collapse */
-    let expanded = false;
-
-    expandDots.addEventListener("click", () => {
-      if (!expanded) {
-        reviewText.classList.remove("text-limit");
-        expandDots.textContent = " show less";
-        expanded = true;
+    // 🔥 Expand/Collapse handler
+    els.expandDots.addEventListener("click", () => {
+      state.expanded = !state.expanded;
+      if (state.expanded) {
+        els.reviewText.classList.remove("text-limit");
+        els.expandDots.textContent = " show less";
       } else {
-        reviewText.classList.add("text-limit");
-        expandDots.textContent = ".........";
-        expanded = false;
+        els.reviewText.classList.add("text-limit");
+        els.expandDots.textContent = ".........";
       }
     });
 
-    function showPopup() {
-      popupOverlay.classList.add('show');
-      setTimeout(() => popupOverlay.classList.remove('show'), 2000);
-    }
-
-    async function fetchReview() {
+    // 🔥 Copy button handler
+    els.copyBtn.addEventListener("click", async () => {
+      if (!state.reviewContent || els.copyBtn.disabled) return;
+      
       try {
-        const response = await fetch(SHEET_API_URL + '?action=reserve');
-        const textData = await response.text();
-
-        let data;
-        try { data = JSON.parse(textData); }
-        catch {
-          reviewText.innerText = textData.trim();
-          reviewText.classList.add("text-limit");
-          return;
-        }
-
-        if (data.review) {
-          currentReviewId = data.id;
-          reviewReserved = true;
-
-          reviewText.innerText = data.review;
-          reviewText.classList.add("text-limit");
-          expandDots.style.display = "inline-block";
-
-          setupCopyButton(data.review);
-
-          setTimeout(() => {
-            if (!copyClicked && reviewReserved) releaseReview();
-          }, 60000);
-        }
-
-      } catch {
-        reviewText.innerText = "Error fetching review.";
+        await navigator.clipboard.writeText(state.reviewContent);
+        els.copyBtn.innerText = "Copied ✓";
+        state.copyClicked = true;
+        els.googleBtn.classList.remove('disabled');
+        
+        setTimeout(() => els.copyBtn.innerText = "Copy Text", 2000);
+      } catch (err) {
+        console.error('Copy failed:', err);
       }
-    }
+    });
 
-    async function releaseReview() {
-      if (!currentReviewId || !reviewReserved) return;
-      await fetch(`${SHEET_API_URL}?action=release&id=${currentReviewId}`);
-      reviewReserved = false;
-    }
-
-    function setupCopyButton(textToCopy) {
-      const newBtn = copyBtn.cloneNode(true);
-      copyBtn.parentNode.replaceChild(newBtn, copyBtn);
-
-      newBtn.addEventListener("click", async () => {
-        await navigator.clipboard.writeText(textToCopy);
-        newBtn.innerText = "Copied ✓";
-
-        copyClicked = true;
-        googleBtn.classList.remove('disabled');
-
-        setTimeout(() => newBtn.innerText = "Copy Text", 2000);
-      });
-    }
-
-    googleBtn.addEventListener('click', async (e) => {
+    // 🔥 Google review button handler
+    els.googleBtn.addEventListener('click', async (e) => {
       e.preventDefault();
 
-      if (!copyClicked) {
+      if (!state.copyClicked) {
         showPopup();
         return;
       }
 
-      if (copyClicked && currentReviewId && reviewReserved) {
-        await fetch(`${SHEET_API_URL}?action=confirmUsed&id=${currentReviewId}`);
-        reviewReserved = false;
+      // 🔥 Immediate navigation - don't wait for API
+      window.open(GOOGLE_REVIEW_URL, '_blank');
+
+      // 🔥 Confirm usage in background (non-blocking)
+      if (state.reviewId && state.reserved) {
+        fetch(`${SHEET_API_URL}?action=confirmUsed&id=${state.reviewId}`)
+          .catch(err => console.error('Confirm failed:', err));
+        state.reserved = false;
       }
-
-      window.open('https://reviewthis.biz/e5dc93e0', '_blank');
     });
 
+    function showPopup() {
+      els.popupOverlay.classList.add('show');
+      setTimeout(() => els.popupOverlay.classList.remove('show'), 2000);
+    }
+
+    // 🔥 Optimized fetch with timeout and retry
+    async function fetchReview() {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 sec timeout
+
+      try {
+        const response = await fetch(SHEET_API_URL + '?action=reserve', {
+          signal: controller.signal,
+          cache: 'no-cache'
+        });
+        clearTimeout(timeoutId);
+
+        const textData = await response.text();
+        let data;
+        
+        try { 
+          data = JSON.parse(textData); 
+        } catch {
+          // Plain text response
+          state.reviewContent = textData.trim();
+          els.reviewText.innerText = state.reviewContent;
+          els.reviewText.classList.add("text-limit");
+          els.copyBtn.disabled = false;
+          return;
+        }
+
+        if (data.review) {
+          state.reviewId = data.id;
+          state.reserved = true;
+          state.reviewContent = data.review;
+
+          els.reviewText.innerText = state.reviewContent;
+          els.reviewText.classList.add("text-limit");
+          els.expandDots.style.display = "inline-block";
+          els.copyBtn.disabled = false;
+
+          // 🔥 Auto-release after 60 seconds if not copied
+          setTimeout(() => {
+            if (!state.copyClicked && state.reserved) releaseReview();
+          }, 60000);
+        } else {
+          throw new Error('No review data');
+        }
+
+      } catch (err) {
+        clearTimeout(timeoutId);
+        console.error('Fetch error:', err);
+        els.reviewText.innerText = "Error loading review. Please refresh.";
+        els.copyBtn.disabled = true;
+      }
+    }
+
+    // 🔥 Non-blocking release
+    async function releaseReview() {
+      if (!state.reviewId || !state.reserved) return;
+      
+      fetch(`${SHEET_API_URL}?action=release&id=${state.reviewId}`)
+        .catch(err => console.error('Release failed:', err));
+      
+      state.reserved = false;
+    }
+
+    // 🔥 Cleanup on page unload
     window.addEventListener('beforeunload', () => {
-      if (!copyClicked && reviewReserved)
-        navigator.sendBeacon(`${SHEET_API_URL}?action=release&id=${currentReviewId}`);
+      if (!state.copyClicked && state.reserved && state.reviewId) {
+        navigator.sendBeacon(`${SHEET_API_URL}?action=release&id=${state.reviewId}`);
+      }
     });
 
+    // 🔥 Start fetching immediately
     fetchReview();
 </script>
 
 </body>
 </html>
-
