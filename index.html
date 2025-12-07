@@ -98,6 +98,33 @@
       transform: scale(0.98);
     }
 
+    .copy-btn:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+
+    /* Retry button */
+    .retry-btn {
+      position: absolute;
+      bottom: 10px;
+      right: 24px;
+      background: #ff5722;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      transition: background 0.2s;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      display: none;
+    }
+
+    .retry-btn:hover {
+      background: #e64a19;
+    }
+
     .google-btn {
       display: inline-block;
       margin-top: 35px;
@@ -226,6 +253,12 @@
       40% { content: '..'; }
       60%, 100% { content: '...'; }
     }
+
+    /* Error text color */
+    .error-text {
+      color: #d32f2f !important;
+      font-size: 14px !important;
+    }
   </style>
 </head>
 <body>
@@ -236,6 +269,7 @@
     <p id="reviewText" class="text-limit">Loading review<span class="loading-dots"></span></p>
     <span id="expandDots" class="expand-dots" style="display:none;">.........</span>
     <button class="copy-btn" id="copyBtn">Copy Text</button>
+    <button class="retry-btn" id="retryBtn">Retry</button>
   </div>
 
   <a id="googleBtn" class="google-btn disabled">Google Reviews</a>
@@ -273,6 +307,7 @@
     text: document.getElementById('reviewText'),
     dots: document.getElementById('expandDots'),
     copy: document.getElementById('copyBtn'),
+    retry: document.getElementById('retryBtn'),
     google: document.getElementById('googleBtn'),
     popup: document.getElementById('popupOverlay')
   };
@@ -309,6 +344,16 @@
     }
   };
 
+  // 🚀 Retry Button
+  $.retry.onclick = () => {
+    $.retry.style.display = 'none';
+    $.text.innerHTML = 'Loading review<span class="loading-dots"></span>';
+    $.text.classList.remove('error-text');
+    $.copy.disabled = false;
+    $.copy.style.opacity = '1';
+    fetchReview();
+  };
+
   // 🚀 Google Review Button - INSTANT NAVIGATION
   $.google.onclick = (e) => {
     e.preventDefault();
@@ -329,24 +374,41 @@
     }
   };
 
-  // 🚀 Fetch with timeout and retry
+  // 🚀 Fetch with timeout and retry + detailed error handling
   async function fetchReview(retries = 2) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), TIMEOUT);
 
     try {
+      console.log('Fetching review... Attempt:', 3 - retries);
+      
       const res = await fetch(`${API}?action=reserve`, {
         signal: controller.signal,
-        cache: 'no-store'
+        cache: 'no-store',
+        mode: 'cors'
       });
       
       clearTimeout(timer);
+      
+      // Check if response is OK
+      if (!res.ok) {
+        throw new Error(`HTTP Error: ${res.status}`);
+      }
+      
       const text = await res.text();
+      console.log('Response received:', text.substring(0, 100));
+      
+      // Check if response is empty
+      if (!text || text.trim().length === 0) {
+        throw new Error('Empty response from server');
+      }
       
       let data;
       try {
         data = JSON.parse(text);
-      } catch {
+        console.log('Parsed JSON:', data);
+      } catch (parseError) {
+        console.log('Not JSON, treating as plain text');
         // Plain text response
         state.review = text.trim();
         $.text.textContent = state.review;
@@ -363,24 +425,48 @@
         $.text.classList.add('text-limit');
         $.dots.style.display = 'inline-block';
 
+        console.log('Review loaded successfully');
+
         // Auto-release after 60s
         setTimeout(() => {
           if (!state.copied && state.reserved) releaseReview();
         }, 60000);
+      } else if (data.error) {
+        // Handle API error response
+        throw new Error(data.error);
       } else {
-        throw new Error('No review');
+        throw new Error('No review data in response');
       }
 
     } catch (e) {
       clearTimeout(timer);
+      console.error('Fetch error:', e);
       
-      // Retry logic
-      if (retries > 0 && e.name === 'AbortError') {
-        console.log('Retrying...');
+      // Retry logic for network errors
+      if (retries > 0) {
+        console.log(`Retrying... (${retries} attempts left)`);
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 sec
         return fetchReview(retries - 1);
       }
       
-      $.text.textContent = 'Error loading. Please refresh page.';
+      // Show user-friendly error message
+      let errorMsg = 'Error loading review. ';
+      
+      if (e.name === 'AbortError') {
+        errorMsg += 'Request timeout. Please check your internet connection.';
+      } else if (e.message.includes('HTTP Error')) {
+        errorMsg += 'Server error. Please try again later.';
+      } else if (e.message.includes('Failed to fetch')) {
+        errorMsg += 'Network error. Please check your internet.';
+      } else {
+        errorMsg += e.message;
+      }
+      
+      $.text.textContent = errorMsg;
+      $.text.classList.add('error-text');
+      $.copy.disabled = true;
+      $.copy.style.opacity = '0.5';
+      $.retry.style.display = 'block';
     }
   }
 
