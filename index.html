@@ -3,12 +3,6 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  
-  <!-- 🚀 CRITICAL: Preconnect for instant API connection -->
-  <link rel="preconnect" href="https://script.google.com">
-  <link rel="dns-prefetch" href="https://script.google.com">
-  <link rel="preconnect" href="https://reviewthis.biz">
-  <link rel="dns-prefetch" href="https://reviewthis.biz">
 
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -31,6 +25,87 @@
       justify-content: flex-start;
       text-align: center;
       padding-top: 197px;
+    }
+
+    /* Hamburger Menu Button */
+    .menu-btn {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      width: 40px;
+      height: 40px;
+      background: rgba(255, 255, 255, 0.9);
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+      z-index: 1001;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+      transition: 0.3s;
+    }
+
+    .menu-btn:hover {
+      background: rgba(255, 255, 255, 1);
+    }
+
+    .menu-btn span {
+      width: 24px;
+      height: 3px;
+      background: #333;
+      border-radius: 2px;
+      transition: 0.3s;
+    }
+
+    /* Side Menu */
+    .side-menu {
+      position: fixed;
+      top: 0;
+      left: -100%;
+      width: 280px;
+      height: 100%;
+      background: white;
+      z-index: 1000;
+      box-shadow: 2px 0 15px rgba(0,0,0,0.2);
+      transition: left 0.3s ease;
+      overflow-y: auto;
+      padding: 80px 25px 25px 25px;
+    }
+
+    .side-menu.open {
+      left: 0;
+    }
+
+    .menu-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 999;
+      display: none;
+    }
+
+    .menu-overlay.show {
+      display: block;
+    }
+
+    .menu-content h3 {
+      font-size: 18px;
+      color: #333;
+      margin-bottom: 15px;
+      font-weight: 700;
+    }
+
+    .menu-content p {
+      font-size: 14px;
+      color: #555;
+      line-height: 1.6;
+      margin-bottom: 12px;
     }
 
     .subtitle {
@@ -86,43 +161,12 @@
       cursor: pointer;
       font-weight: 600;
       font-size: 14px;
-      transition: background 0.2s;
+      transition: 0.3s;
       box-shadow: 0 2px 8px rgba(0,0,0,0.2);
     }
 
     .copy-btn:hover {
       background: #0d47a1;
-    }
-
-    .copy-btn:active {
-      transform: scale(0.98);
-    }
-
-    .copy-btn:disabled {
-      background: #ccc;
-      cursor: not-allowed;
-    }
-
-    /* Retry button */
-    .retry-btn {
-      position: absolute;
-      bottom: 10px;
-      right: 24px;
-      background: #ff5722;
-      color: white;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: 600;
-      font-size: 14px;
-      transition: background 0.2s;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-      display: none;
-    }
-
-    .retry-btn:hover {
-      background: #e64a19;
     }
 
     .google-btn {
@@ -139,17 +183,11 @@
       animation: colorShift 2s infinite alternate;
       box-shadow: 0 3px 12px rgba(0,0,0,0.25), 0 0 8px rgba(66, 133, 244, 0.3);
       cursor: pointer;
-      transition: transform 0.1s;
-    }
-
-    .google-btn:active {
-      transform: scale(0.98);
+      transition: 0.3s;
     }
 
     .google-btn.disabled {
-      opacity: 0.5;
       cursor: not-allowed;
-      pointer-events: none;
     }
 
     @keyframes colorShift {
@@ -187,21 +225,14 @@
 
     .thanks {
       margin-top: 30px;
-      font-size: 22px;
+      font-size: 28px;
       font-family: 'Brush Script MT', cursive;
-      color: #111;
+      color: #000;
       text-align: center;
+      font-weight: 700;
     }
 
-    .policy {
-      font-size: 12px;
-      color: #3b2121;
-      text-align: center;
-      margin-top: 3px;
-      line-height: 1.4;
-      max-width: 650px;
-    }
-
+    /* Popup Styles */
     .popup-overlay {
       display: none;
       position: fixed;
@@ -241,35 +272,35 @@
       font-weight: 600;
       line-height: 1.4;
     }
-
-    /* Loading dots animation */
-    .loading-dots::after {
-      content: '...';
-      animation: dots 1.5s steps(4, end) infinite;
-    }
-
-    @keyframes dots {
-      0%, 20% { content: '.'; }
-      40% { content: '..'; }
-      60%, 100% { content: '...'; }
-    }
-
-    /* Error text color */
-    .error-text {
-      color: #d32f2f !important;
-      font-size: 14px !important;
-    }
   </style>
 </head>
 <body>
 
+  <!-- Hamburger Menu Button -->
+  <button class="menu-btn" id="menuBtn">
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
+
+  <!-- Menu Overlay -->
+  <div class="menu-overlay" id="menuOverlay"></div>
+
+  <!-- Side Menu -->
+  <div class="side-menu" id="sideMenu">
+    <div class="menu-content">
+      <h3>Policy & Information</h3>
+      <p>All reviews are voluntary, and for feedback purposes only.</p>
+      <p>By using this page, you agree that reviews reflect personal experience only.</p>
+    </div>
+  </div>
+
   <div class="subtitle">To give review, copy the text below 👇</div>
 
   <div class="review-box" id="reviewBox">
-    <p id="reviewText" class="text-limit">Loading review<span class="loading-dots"></span></p>
-    <span id="expandDots" class="expand-dots" style="display:none;">.........</span>
+    <p id="reviewText" class="text-limit">Loading review...</p>
+    <span id="expandDots" class="expand-dots">.........</span>
     <button class="copy-btn" id="copyBtn">Copy Text</button>
-    <button class="retry-btn" id="retryBtn">Retry</button>
   </div>
 
   <a id="googleBtn" class="google-btn disabled">Google Reviews</a>
@@ -282,11 +313,6 @@
 
   <div class="thanks">Thanks for supporting</div>
 
-  <div class="policy">
-    <p>All reviews are voluntary, and for feedback purposes only.</p>
-    <p>By using this page, you agree that reviews reflect personal experience only.</p>
-  </div>
-
   <div class="popup-overlay" id="popupOverlay">
     <div class="popup-box">
       <div class="popup-message">पहले Copy Text बटन पर क्लिक करें</div>
@@ -294,199 +320,129 @@
   </div>
 
 <script>
-(function() {
-  'use strict';
-  
-  // 🚀 Constants
-  const API = 'https://script.google.com/macros/s/AKfycbxIj_6_hzE8sR6t4dU4jy9UNogjFp8WLGTlBWT3z9jTeRIHMtYtnnPAV9W8aTzCIQSG/exec';
-  const REVIEW_URL = 'https://reviewthis.biz/e5dc93e0';
-  const TIMEOUT = 4000; // 4 second timeout
-  
-  // 🚀 Cache DOM elements
-  const $ = {
-    text: document.getElementById('reviewText'),
-    dots: document.getElementById('expandDots'),
-    copy: document.getElementById('copyBtn'),
-    retry: document.getElementById('retryBtn'),
-    google: document.getElementById('googleBtn'),
-    popup: document.getElementById('popupOverlay')
-  };
-  
-  // 🚀 State
-  let state = {
-    id: null,
-    review: '',
-    copied: false,
-    reserved: false,
-    expanded: false
-  };
 
-  // 🚀 Expand/Collapse
-  $.dots.onclick = () => {
-    state.expanded = !state.expanded;
-    $.text.classList.toggle('text-limit', !state.expanded);
-    $.dots.textContent = state.expanded ? ' show less' : '.........';
-  };
+    const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbxIj_6_hzE8sR6t4dU4jy9UNogjFp8WLGTlBWT3z9jTeRIHMtYtnnPAV9W8aTzCIQSG/exec';
 
-  // 🚀 Copy Button - Single event listener
-  $.copy.onclick = async () => {
-    if (!state.review) return;
-    
-    try {
-      await navigator.clipboard.writeText(state.review);
-      $.copy.textContent = 'Copied ✓';
-      state.copied = true;
-      $.google.classList.remove('disabled');
-      setTimeout(() => $.copy.textContent = 'Copy Text', 2000);
-    } catch (e) {
-      $.copy.textContent = 'Copy failed';
-      setTimeout(() => $.copy.textContent = 'Copy Text', 2000);
-    }
-  };
+    const reviewText = document.getElementById('reviewText');
+    const expandDots = document.getElementById('expandDots');
+    const copyBtn = document.getElementById('copyBtn');
+    const googleBtn = document.getElementById('googleBtn');
+    const popupOverlay = document.getElementById('popupOverlay');
+    const menuBtn = document.getElementById('menuBtn');
+    const sideMenu = document.getElementById('sideMenu');
+    const menuOverlay = document.getElementById('menuOverlay');
 
-  // 🚀 Retry Button
-  $.retry.onclick = () => {
-    $.retry.style.display = 'none';
-    $.text.innerHTML = 'Loading review<span class="loading-dots"></span>';
-    $.text.classList.remove('error-text');
-    $.copy.disabled = false;
-    $.copy.style.opacity = '1';
-    fetchReview();
-  };
+    let currentReviewId = null;
+    let copyClicked = false;
+    let reviewReserved = false;
 
-  // 🚀 Google Review Button - INSTANT NAVIGATION
-  $.google.onclick = (e) => {
-    e.preventDefault();
-    
-    if (!state.copied) {
-      $.popup.classList.add('show');
-      setTimeout(() => $.popup.classList.remove('show'), 2000);
-      return;
-    }
+    /* Menu Toggle */
+    menuBtn.addEventListener('click', () => {
+      sideMenu.classList.add('open');
+      menuOverlay.classList.add('show');
+    });
 
-    // 🔥 INSTANT: Open URL first, API call later
-    window.open(REVIEW_URL, '_blank');
+    menuOverlay.addEventListener('click', () => {
+      sideMenu.classList.remove('open');
+      menuOverlay.classList.remove('show');
+    });
 
-    // 🔥 Background API call (non-blocking)
-    if (state.id && state.reserved) {
-      fetch(`${API}?action=confirmUsed&id=${state.id}`).catch(() => {});
-      state.reserved = false;
-    }
-  };
+    /* Expand / Collapse */
+    let expanded = false;
 
-  // 🚀 Fetch with timeout and retry + detailed error handling
-  async function fetchReview(retries = 2) {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), TIMEOUT);
-
-    try {
-      console.log('Fetching review... Attempt:', 3 - retries);
-      
-      const res = await fetch(`${API}?action=reserve`, {
-        signal: controller.signal,
-        cache: 'no-store',
-        mode: 'cors'
-      });
-      
-      clearTimeout(timer);
-      
-      // Check if response is OK
-      if (!res.ok) {
-        throw new Error(`HTTP Error: ${res.status}`);
+    expandDots.addEventListener("click", () => {
+      if (!expanded) {
+        reviewText.classList.remove("text-limit");
+        expandDots.textContent = " show less";
+        expanded = true;
+      } else {
+        reviewText.classList.add("text-limit");
+        expandDots.textContent = ".........";
+        expanded = false;
       }
-      
-      const text = await res.text();
-      console.log('Response received:', text.substring(0, 100));
-      
-      // Check if response is empty
-      if (!text || text.trim().length === 0) {
-        throw new Error('Empty response from server');
-      }
-      
-      let data;
+    });
+
+    function showPopup() {
+      popupOverlay.classList.add('show');
+      setTimeout(() => popupOverlay.classList.remove('show'), 2000);
+    }
+
+    async function fetchReview() {
       try {
-        data = JSON.parse(text);
-        console.log('Parsed JSON:', data);
-      } catch (parseError) {
-        console.log('Not JSON, treating as plain text');
-        // Plain text response
-        state.review = text.trim();
-        $.text.textContent = state.review;
-        $.text.classList.add('text-limit');
+        const response = await fetch(SHEET_API_URL + '?action=reserve');
+        const textData = await response.text();
+
+        let data;
+        try { data = JSON.parse(textData); }
+        catch {
+          reviewText.innerText = textData.trim();
+          reviewText.classList.add("text-limit");
+          return;
+        }
+
+        if (data.review) {
+          currentReviewId = data.id;
+          reviewReserved = true;
+
+          reviewText.innerText = data.review;
+          reviewText.classList.add("text-limit");
+          expandDots.style.display = "inline-block";
+
+          setupCopyButton(data.review);
+
+          setTimeout(() => {
+            if (!copyClicked && reviewReserved) releaseReview();
+          }, 60000);
+        }
+
+      } catch {
+        reviewText.innerText = "Error fetching review.";
+      }
+    }
+
+    async function releaseReview() {
+      if (!currentReviewId || !reviewReserved) return;
+      await fetch(`${SHEET_API_URL}?action=release&id=${currentReviewId}`);
+      reviewReserved = false;
+    }
+
+    function setupCopyButton(textToCopy) {
+      const newBtn = copyBtn.cloneNode(true);
+      copyBtn.parentNode.replaceChild(newBtn, copyBtn);
+
+      newBtn.addEventListener("click", async () => {
+        await navigator.clipboard.writeText(textToCopy);
+        newBtn.innerText = "Copied ✓";
+
+        copyClicked = true;
+        googleBtn.classList.remove('disabled');
+
+        setTimeout(() => newBtn.innerText = "Copy Text", 2000);
+      });
+    }
+
+    googleBtn.addEventListener('click', async (e) => {
+      e.preventDefault();
+
+      if (!copyClicked) {
+        showPopup();
         return;
       }
 
-      if (data.review) {
-        state.id = data.id;
-        state.review = data.review;
-        state.reserved = true;
-
-        $.text.textContent = state.review;
-        $.text.classList.add('text-limit');
-        $.dots.style.display = 'inline-block';
-
-        console.log('Review loaded successfully');
-
-        // Auto-release after 60s
-        setTimeout(() => {
-          if (!state.copied && state.reserved) releaseReview();
-        }, 60000);
-      } else if (data.error) {
-        // Handle API error response
-        throw new Error(data.error);
-      } else {
-        throw new Error('No review data in response');
+      if (copyClicked && currentReviewId && reviewReserved) {
+        await fetch(`${SHEET_API_URL}?action=confirmUsed&id=${currentReviewId}`);
+        reviewReserved = false;
       }
 
-    } catch (e) {
-      clearTimeout(timer);
-      console.error('Fetch error:', e);
-      
-      // Retry logic for network errors
-      if (retries > 0) {
-        console.log(`Retrying... (${retries} attempts left)`);
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 sec
-        return fetchReview(retries - 1);
-      }
-      
-      // Show user-friendly error message
-      let errorMsg = 'Error loading review. ';
-      
-      if (e.name === 'AbortError') {
-        errorMsg += 'Request timeout. Please check your internet connection.';
-      } else if (e.message.includes('HTTP Error')) {
-        errorMsg += 'Server error. Please try again later.';
-      } else if (e.message.includes('Failed to fetch')) {
-        errorMsg += 'Network error. Please check your internet.';
-      } else {
-        errorMsg += e.message;
-      }
-      
-      $.text.textContent = errorMsg;
-      $.text.classList.add('error-text');
-      $.copy.disabled = true;
-      $.copy.style.opacity = '0.5';
-      $.retry.style.display = 'block';
-    }
-  }
+      window.open('https://reviewthis.biz/e5dc93e0', '_blank');
+    });
 
-  // 🚀 Release review (non-blocking)
-  function releaseReview() {
-    if (!state.id || !state.reserved) return;
-    fetch(`${API}?action=release&id=${state.id}`).catch(() => {});
-    state.reserved = false;
-  }
+    window.addEventListener('beforeunload', () => {
+      if (!copyClicked && reviewReserved)
+        navigator.sendBeacon(`${SHEET_API_URL}?action=release&id=${currentReviewId}`);
+    });
 
-  // 🚀 Cleanup on page close
-  window.addEventListener('beforeunload', () => {
-    if (!state.copied && state.reserved && state.id) {
-      navigator.sendBeacon(`${API}?action=release&id=${state.id}`);
-    }
-  });
-
-  // 🚀 Start immediately
-  fetchReview();
-})();
+    fetchReview();
 </script>
 
 </body>
