@@ -4,9 +4,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   
-  <!-- 🔥 Preconnect to Google Sheets API for faster loading -->
+  <!-- 🚀 CRITICAL: Preconnect for instant API connection -->
   <link rel="preconnect" href="https://script.google.com">
   <link rel="dns-prefetch" href="https://script.google.com">
+  <link rel="preconnect" href="https://reviewthis.biz">
+  <link rel="dns-prefetch" href="https://reviewthis.biz">
 
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -84,7 +86,7 @@
       cursor: pointer;
       font-weight: 600;
       font-size: 14px;
-      transition: 0.3s;
+      transition: background 0.2s;
       box-shadow: 0 2px 8px rgba(0,0,0,0.2);
     }
 
@@ -92,9 +94,8 @@
       background: #0d47a1;
     }
 
-    .copy-btn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
+    .copy-btn:active {
+      transform: scale(0.98);
     }
 
     .google-btn {
@@ -111,12 +112,17 @@
       animation: colorShift 2s infinite alternate;
       box-shadow: 0 3px 12px rgba(0,0,0,0.25), 0 0 8px rgba(66, 133, 244, 0.3);
       cursor: pointer;
-      transition: 0.3s;
+      transition: transform 0.1s;
+    }
+
+    .google-btn:active {
+      transform: scale(0.98);
     }
 
     .google-btn.disabled {
-      opacity: 0.6;
+      opacity: 0.5;
       cursor: not-allowed;
+      pointer-events: none;
     }
 
     @keyframes colorShift {
@@ -209,21 +215,16 @@
       line-height: 1.4;
     }
 
-    /* Loading spinner */
-    .spinner {
-      border: 3px solid #f3f3f3;
-      border-top: 3px solid #1976d2;
-      border-radius: 50%;
-      width: 24px;
-      height: 24px;
-      animation: spin 1s linear infinite;
-      display: inline-block;
-      vertical-align: middle;
+    /* Loading dots animation */
+    .loading-dots::after {
+      content: '...';
+      animation: dots 1.5s steps(4, end) infinite;
     }
 
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+    @keyframes dots {
+      0%, 20% { content: '.'; }
+      40% { content: '..'; }
+      60%, 100% { content: '...'; }
     }
   </style>
 </head>
@@ -232,9 +233,9 @@
   <div class="subtitle">To give review, copy the text below 👇</div>
 
   <div class="review-box" id="reviewBox">
-    <p id="reviewText" class="text-limit">Loading<span class="spinner"></span></p>
+    <p id="reviewText" class="text-limit">Loading review<span class="loading-dots"></span></p>
     <span id="expandDots" class="expand-dots" style="display:none;">.........</span>
-    <button class="copy-btn" id="copyBtn" disabled>Copy Text</button>
+    <button class="copy-btn" id="copyBtn">Copy Text</button>
   </div>
 
   <a id="googleBtn" class="google-btn disabled">Google Reviews</a>
@@ -259,149 +260,147 @@
   </div>
 
 <script>
-    const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbxIj_6_hzE8sR6t4dU4jy9UNogjFp8WLGTlBWT3z9jTeRIHMtYtnnPAV9W8aTzCIQSG/exec';
-    const GOOGLE_REVIEW_URL = 'https://reviewthis.biz/e5dc93e0';
+(function() {
+  'use strict';
+  
+  // 🚀 Constants
+  const API = 'https://script.google.com/macros/s/AKfycbxIj_6_hzE8sR6t4dU4jy9UNogjFp8WLGTlBWT3z9jTeRIHMtYtnnPAV9W8aTzCIQSG/exec';
+  const REVIEW_URL = 'https://reviewthis.biz/e5dc93e0';
+  const TIMEOUT = 4000; // 4 second timeout
+  
+  // 🚀 Cache DOM elements
+  const $ = {
+    text: document.getElementById('reviewText'),
+    dots: document.getElementById('expandDots'),
+    copy: document.getElementById('copyBtn'),
+    google: document.getElementById('googleBtn'),
+    popup: document.getElementById('popupOverlay')
+  };
+  
+  // 🚀 State
+  let state = {
+    id: null,
+    review: '',
+    copied: false,
+    reserved: false,
+    expanded: false
+  };
 
-    const els = {
-      reviewText: document.getElementById('reviewText'),
-      expandDots: document.getElementById('expandDots'),
-      copyBtn: document.getElementById('copyBtn'),
-      googleBtn: document.getElementById('googleBtn'),
-      popupOverlay: document.getElementById('popupOverlay')
-    };
+  // 🚀 Expand/Collapse
+  $.dots.onclick = () => {
+    state.expanded = !state.expanded;
+    $.text.classList.toggle('text-limit', !state.expanded);
+    $.dots.textContent = state.expanded ? ' show less' : '.........';
+  };
 
-    let state = {
-      reviewId: null,
-      copyClicked: false,
-      reserved: false,
-      expanded: false,
-      reviewContent: ''
-    };
+  // 🚀 Copy Button - Single event listener
+  $.copy.onclick = async () => {
+    if (!state.review) return;
+    
+    try {
+      await navigator.clipboard.writeText(state.review);
+      $.copy.textContent = 'Copied ✓';
+      state.copied = true;
+      $.google.classList.remove('disabled');
+      setTimeout(() => $.copy.textContent = 'Copy Text', 2000);
+    } catch (e) {
+      $.copy.textContent = 'Copy failed';
+      setTimeout(() => $.copy.textContent = 'Copy Text', 2000);
+    }
+  };
 
-    // 🔥 Expand/Collapse handler
-    els.expandDots.addEventListener("click", () => {
-      state.expanded = !state.expanded;
-      if (state.expanded) {
-        els.reviewText.classList.remove("text-limit");
-        els.expandDots.textContent = " show less";
-      } else {
-        els.reviewText.classList.add("text-limit");
-        els.expandDots.textContent = ".........";
-      }
-    });
+  // 🚀 Google Review Button - INSTANT NAVIGATION
+  $.google.onclick = (e) => {
+    e.preventDefault();
+    
+    if (!state.copied) {
+      $.popup.classList.add('show');
+      setTimeout(() => $.popup.classList.remove('show'), 2000);
+      return;
+    }
 
-    // 🔥 Copy button handler
-    els.copyBtn.addEventListener("click", async () => {
-      if (!state.reviewContent || els.copyBtn.disabled) return;
+    // 🔥 INSTANT: Open URL first, API call later
+    window.open(REVIEW_URL, '_blank');
+
+    // 🔥 Background API call (non-blocking)
+    if (state.id && state.reserved) {
+      fetch(`${API}?action=confirmUsed&id=${state.id}`).catch(() => {});
+      state.reserved = false;
+    }
+  };
+
+  // 🚀 Fetch with timeout and retry
+  async function fetchReview(retries = 2) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), TIMEOUT);
+
+    try {
+      const res = await fetch(`${API}?action=reserve`, {
+        signal: controller.signal,
+        cache: 'no-store'
+      });
       
+      clearTimeout(timer);
+      const text = await res.text();
+      
+      let data;
       try {
-        await navigator.clipboard.writeText(state.reviewContent);
-        els.copyBtn.innerText = "Copied ✓";
-        state.copyClicked = true;
-        els.googleBtn.classList.remove('disabled');
-        
-        setTimeout(() => els.copyBtn.innerText = "Copy Text", 2000);
-      } catch (err) {
-        console.error('Copy failed:', err);
-      }
-    });
-
-    // 🔥 Google review button handler
-    els.googleBtn.addEventListener('click', async (e) => {
-      e.preventDefault();
-
-      if (!state.copyClicked) {
-        showPopup();
+        data = JSON.parse(text);
+      } catch {
+        // Plain text response
+        state.review = text.trim();
+        $.text.textContent = state.review;
+        $.text.classList.add('text-limit');
         return;
       }
 
-      // 🔥 Immediate navigation - don't wait for API
-      window.open(GOOGLE_REVIEW_URL, '_blank');
+      if (data.review) {
+        state.id = data.id;
+        state.review = data.review;
+        state.reserved = true;
 
-      // 🔥 Confirm usage in background (non-blocking)
-      if (state.reviewId && state.reserved) {
-        fetch(`${SHEET_API_URL}?action=confirmUsed&id=${state.reviewId}`)
-          .catch(err => console.error('Confirm failed:', err));
-        state.reserved = false;
+        $.text.textContent = state.review;
+        $.text.classList.add('text-limit');
+        $.dots.style.display = 'inline-block';
+
+        // Auto-release after 60s
+        setTimeout(() => {
+          if (!state.copied && state.reserved) releaseReview();
+        }, 60000);
+      } else {
+        throw new Error('No review');
       }
-    });
 
-    function showPopup() {
-      els.popupOverlay.classList.add('show');
-      setTimeout(() => els.popupOverlay.classList.remove('show'), 2000);
-    }
-
-    // 🔥 Optimized fetch with timeout and retry
-    async function fetchReview() {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 sec timeout
-
-      try {
-        const response = await fetch(SHEET_API_URL + '?action=reserve', {
-          signal: controller.signal,
-          cache: 'no-cache'
-        });
-        clearTimeout(timeoutId);
-
-        const textData = await response.text();
-        let data;
-        
-        try { 
-          data = JSON.parse(textData); 
-        } catch {
-          // Plain text response
-          state.reviewContent = textData.trim();
-          els.reviewText.innerText = state.reviewContent;
-          els.reviewText.classList.add("text-limit");
-          els.copyBtn.disabled = false;
-          return;
-        }
-
-        if (data.review) {
-          state.reviewId = data.id;
-          state.reserved = true;
-          state.reviewContent = data.review;
-
-          els.reviewText.innerText = state.reviewContent;
-          els.reviewText.classList.add("text-limit");
-          els.expandDots.style.display = "inline-block";
-          els.copyBtn.disabled = false;
-
-          // 🔥 Auto-release after 60 seconds if not copied
-          setTimeout(() => {
-            if (!state.copyClicked && state.reserved) releaseReview();
-          }, 60000);
-        } else {
-          throw new Error('No review data');
-        }
-
-      } catch (err) {
-        clearTimeout(timeoutId);
-        console.error('Fetch error:', err);
-        els.reviewText.innerText = "Error loading review. Please refresh.";
-        els.copyBtn.disabled = true;
-      }
-    }
-
-    // 🔥 Non-blocking release
-    async function releaseReview() {
-      if (!state.reviewId || !state.reserved) return;
+    } catch (e) {
+      clearTimeout(timer);
       
-      fetch(`${SHEET_API_URL}?action=release&id=${state.reviewId}`)
-        .catch(err => console.error('Release failed:', err));
-      
-      state.reserved = false;
-    }
-
-    // 🔥 Cleanup on page unload
-    window.addEventListener('beforeunload', () => {
-      if (!state.copyClicked && state.reserved && state.reviewId) {
-        navigator.sendBeacon(`${SHEET_API_URL}?action=release&id=${state.reviewId}`);
+      // Retry logic
+      if (retries > 0 && e.name === 'AbortError') {
+        console.log('Retrying...');
+        return fetchReview(retries - 1);
       }
-    });
+      
+      $.text.textContent = 'Error loading. Please refresh page.';
+    }
+  }
 
-    // 🔥 Start fetching immediately
-    fetchReview();
+  // 🚀 Release review (non-blocking)
+  function releaseReview() {
+    if (!state.id || !state.reserved) return;
+    fetch(`${API}?action=release&id=${state.id}`).catch(() => {});
+    state.reserved = false;
+  }
+
+  // 🚀 Cleanup on page close
+  window.addEventListener('beforeunload', () => {
+    if (!state.copied && state.reserved && state.id) {
+      navigator.sendBeacon(`${API}?action=release&id=${state.id}`);
+    }
+  });
+
+  // 🚀 Start immediately
+  fetchReview();
+})();
 </script>
 
 </body>
