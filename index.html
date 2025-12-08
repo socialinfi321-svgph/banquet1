@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Review App</title>
 
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -10,7 +11,7 @@
     html, body {
       height: 100%;
       width: 100%;
-      overflow: hidden;
+      overflow: hidden; /* Keeps main page non-scrollable as per original design */
     }
 
     body {
@@ -26,12 +27,14 @@
       text-align: center;
       padding-top: 197px;
       transition: background-color 0.3s, filter 0.3s;
+      position: relative; /* Needed for absolute positioning context if changed */
     }
 
     body.dark-mode {
       filter: brightness(0.7);
     }
 
+    /* Pseudo-element for dark mode overlay on the background image */
     body.dark-mode::before {
       content: '';
       position: fixed;
@@ -423,11 +426,144 @@
     body.dark-mode .popup-message {
       color: #fff;
     }
+
+    /* ========================================= */
+    /* NEW SECTION: SLIDE-UP REDIRECT PAGE STYLES */
+    /* ========================================= */
+
+    .iframe-section {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      /* Dark blue + black gradient */
+      background: linear-gradient(180deg, #020024 0%, #090979 35%, #000000 100%);
+      z-index: 3000; /* Must be highest */
+      transform: translateY(100%); /* Initially hidden below viewport */
+      transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1); /* Smooth slide up */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      visibility: hidden; /* Hide completely when not in use */
+    }
+
+    .iframe-section.active {
+      transform: translateY(0);
+      visibility: visible;
+    }
+
+    /* Container for the redirect message with glassmorphism effect */
+    .iframe-container {
+      width: 100%;
+      max-width: 600px;
+      padding: 40px;
+      background: rgba(255, 255, 255, 0.1); /* Translucent */
+      backdrop-filter: blur(15px); /* Blur effect */
+      -webkit-backdrop-filter: blur(15px);
+      border-radius: 20px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+    }
+
+    /* Back Button Styling */
+    .back-btn {
+      margin-bottom: 20px;
+      padding: 12px 24px;
+      background: rgba(255, 255, 255, 0.15);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 30px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    }
+
+    .back-btn:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+    }
+
+    .back-btn svg {
+      width: 20px;
+      height: 20px;
+      fill: currentColor;
+    }
+
+    /* Loader and Redirect Content Styles */
+    .spinner {
+      border: 4px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top: 4px solid #fff;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+      margin-bottom: 25px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .redirect-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: white;
+      text-align: center;
+    }
+
+    .redirect-content h3 {
+      margin-bottom: 12px;
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    .redirect-content p {
+      margin-bottom: 25px;
+      opacity: 0.9;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    .manual-link-btn {
+      display: inline-block;
+      padding: 12px 25px;
+      background: #fff;
+      color: #090979;
+      text-decoration: none;
+      border-radius: 30px;
+      font-weight: bold;
+      font-size: 15px;
+      transition: 0.3s;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+
+    .manual-link-btn:hover {
+      background: #eee;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 14px rgba(0,0,0,0.3);
+    }
+
   </style>
 </head>
 <body>
 
-  <!-- Hamburger Menu Button - Only 3 Lines -->
+  <!-- Hamburger Menu Button -->
   <button class="menu-btn" id="menuBtn">
     <span></span>
     <span></span>
@@ -446,14 +582,10 @@
       <p>.....................................</p>
       <p>This is a paid review promotion designed to help both new and established brands strengthen their market visibility and consumer trust.</p>
       <p>In today’s competitive environment, obtaining genuine reviews has become increasingly difficult, even for brands that provide excellent products and services.</p>
-
-    <p>Through this promotional service, we help highlight brands that are performing well</p>
-     <p> but are not receiving sufficient customer feedback due to market competition or being newly launched.</p>
-    <p>  We also support older, established brands in maintaining their credibility and trust among consumers</p>
-     <p> by ensuring continuous engagement through transparent, paid promotional reviews.</p>
-<p>We strictly ensure that all brands we promote are trustworthy, reliable, and operate professionally.</p>
-     <p> Our goal is to support genuine brands while maintaining honesty, transparency, and fairness for consumers</p>
-    
+      <p>Through this promotional service, we help highlight brands that are performing well but are not receiving sufficient customer feedback due to market competition or being newly launched.</p>
+      <p>We also support older, established brands in maintaining their credibility and trust among consumers by ensuring continuous engagement through transparent, paid promotional reviews.</p>
+      <p>We strictly ensure that all brands we promote are trustworthy, reliable, and operate professionally.</p>
+      <p>Our goal is to support genuine brands while maintaining honesty, transparency, and fairness for consumers.</p>
       
       <!-- Dark/Light Mode Toggle -->
       <div class="mode-toggle">
@@ -478,6 +610,7 @@
     <button class="copy-btn" id="copyBtn">Copy Text</button>
   </div>
 
+  <!-- Google Review Button (Modified behavior in JS) -->
   <a id="googleBtn" class="google-btn disabled">Google Reviews</a>
 
   <div class="star-section">
@@ -488,15 +621,38 @@
 
   <div class="thanks">Thanks for supporting</div>
 
+  <!-- Simple Popup Message -->
   <div class="popup-overlay" id="popupOverlay">
     <div class="popup-box">
       <div class="popup-message">पहले Copy Text बटन पर क्लिक करें</div>
     </div>
   </div>
 
+  <!-- ========================================= -->
+  <!-- NEW SECTION: SLIDE-UP REDIRECT FEEDBACK   -->
+  <!-- ========================================= -->
+  <div class="iframe-section" id="iframeSection">
+    <button class="back-btn" id="backBtn">
+      <!-- SVG Back Arrow -->
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+      Back to Main
+    </button>
+    <div class="iframe-container">
+      <div class="spinner"></div>
+      <div class="redirect-content">
+        <h3>Redirecting...</h3>
+        <p>Opening Google Reviews in a new tab.<br>Please paste your review there.</p>
+        <a href="https://reviewthis.biz/e5dc93e0" target="_blank" class="manual-link-btn" id="manualLinkBtn">
+          Open Google Reviews
+        </a>
+      </div>
+    </div>
+  </div>
+
 <script>
 
     const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbxIj_6_hzE8sR6t4dU4jy9UNogjFp8WLGTlBWT3z9jTeRIHMtYtnnPAV9W8aTzCIQSG/exec';
+    const TARGET_REVIEW_URL = 'https://reviewthis.biz/e5dc93e0';
 
     const reviewText = document.getElementById('reviewText');
     const expandDots = document.getElementById('expandDots');
@@ -507,15 +663,18 @@
     const sideMenu = document.getElementById('sideMenu');
     const menuOverlay = document.getElementById('menuOverlay');
     const darkModeToggle = document.getElementById('darkModeToggle');
-
+    
+    // New Elements
+    const iframeSection = document.getElementById('iframeSection');
+    const backBtn = document.getElementById('backBtn');
+    
     let currentReviewId = null;
     let copyClicked = false;
     let reviewReserved = false;
 
-    /* Menu Toggle - Click button pe open/close */
+    /* Menu Toggle */
     menuBtn.addEventListener('click', () => {
       const isOpen = sideMenu.classList.contains('open');
-      
       if (isOpen) {
         sideMenu.classList.remove('open');
         menuOverlay.classList.remove('show');
@@ -525,7 +684,7 @@
       }
     });
 
-    /* Overlay click pe close */
+    /* Overlay click close */
     menuOverlay.addEventListener('click', () => {
       sideMenu.classList.remove('open');
       menuOverlay.classList.remove('show');
@@ -548,9 +707,8 @@
       darkModeToggle.checked = true;
     }
 
-    /* Expand / Collapse */
+    /* Expand / Collapse Logic */
     let expanded = false;
-
     expandDots.addEventListener("click", () => {
       if (!expanded) {
         reviewText.classList.remove("text-limit");
@@ -568,6 +726,7 @@
       setTimeout(() => popupOverlay.classList.remove('show'), 2000);
     }
 
+    /* Fetch Review Logic */
     async function fetchReview() {
       try {
         const response = await fetch(SHEET_API_URL + '?action=reserve');
@@ -622,6 +781,12 @@
       });
     }
 
+    /* 
+      MODIFIED: Google Button Logic 
+      1. Confirms usage via API (Fire and Forget)
+      2. Slides up "Redirecting" screen
+      3. Waits 1.5s for visual effect, then Opens New Tab
+    */
     googleBtn.addEventListener('click', async (e) => {
       e.preventDefault();
 
@@ -630,24 +795,41 @@
         return;
       }
 
-      if (copyClicked && currentReviewId && reviewReserved) {
-        await fetch(`${SHEET_API_URL}?action=confirmUsed&id=${currentReviewId}`);
+      // 1. Show Slide-up (Feedback UI)
+      iframeSection.classList.add('active');
+
+      // 2. Mark as used (Async, don't block UI)
+      if (currentReviewId && reviewReserved) {
+        fetch(`${SHEET_API_URL}?action=confirmUsed&id=${currentReviewId}`)
+          .catch(err => console.error("Error confirming review:", err));
         reviewReserved = false;
       }
 
-      window.open('https://reviewthis.biz/e5dc93e0', '_blank');
+      // 3. Open in new tab with delay
+      // Delay allows the user to see the "Redirecting" slide-up before switching tabs.
+      setTimeout(() => {
+        window.open(TARGET_REVIEW_URL, '_blank');
+      }, 1500);
     });
 
+    /* 
+      Back Button Logic
+      - Hides the redirect/slide-up screen
+    */
+    backBtn.addEventListener('click', () => {
+      iframeSection.classList.remove('active');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    /* Handle page unload logic */
     window.addEventListener('beforeunload', () => {
       if (!copyClicked && reviewReserved)
         navigator.sendBeacon(`${SHEET_API_URL}?action=release&id=${currentReviewId}`);
     });
 
+    // Initialize
     fetchReview();
 </script>
 
 </body>
 </html>
-
-
-
